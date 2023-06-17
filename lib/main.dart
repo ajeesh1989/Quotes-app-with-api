@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:shimmer/shimmer.dart';
 
@@ -25,6 +26,7 @@ class _QuoteScreenState extends State<QuoteScreen> {
   bool _isLoading = true;
   final List<String> _favorites = [];
   String _selectedType = '';
+  late SharedPreferences _preferences;
 
   Future<void> fetchQuote() async {
     setState(() {
@@ -49,6 +51,19 @@ class _QuoteScreenState extends State<QuoteScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> loadFavorites() async {
+    final favorites = _preferences.getStringList('favorites');
+    if (favorites != null) {
+      setState(() {
+        _favorites.addAll(favorites);
+      });
+    }
+  }
+
+  Future<void> saveFavorites() async {
+    await _preferences.setStringList('favorites', _favorites);
   }
 
   void copyToClipboard(BuildContext context) {
@@ -100,13 +115,15 @@ class _QuoteScreenState extends State<QuoteScreen> {
   }
 
   void addToFavorites() {
-    if (!_favorites.contains('$_quote - $_author')) {
+    final quote = '$_quote - $_author';
+    if (!_favorites.contains(quote)) {
       setState(() {
-        _favorites.add('$_quote - $_author');
+        _favorites.add(quote);
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Quote added to favorites')),
       );
+      saveFavorites();
     }
   }
 
@@ -117,11 +134,51 @@ class _QuoteScreenState extends State<QuoteScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Quote removed from favorites')),
     );
+    saveFavorites();
+  }
+
+  Widget buildFavoritesList() {
+    if (_favorites.isEmpty) {
+      return const ListTile(
+        title: Text('No favorite quotes'),
+        subtitle: Text('Add quotes to your favorites'),
+      );
+    }
+
+    return ListView.separated(
+      itemCount: _favorites.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      itemBuilder: (BuildContext context, int index) {
+        final quote = _favorites[index];
+        return Dismissible(
+          key: Key(quote),
+          direction: DismissDirection.endToStart,
+          onDismissed: (direction) => removeFromFavorites(quote),
+          background: Container(
+            color: Colors.red,
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: const Icon(
+              Icons.delete,
+              color: Colors.white,
+            ),
+          ),
+          child: ListTile(
+            title: Text(quote),
+            onTap: () => copyToClipboard(context),
+          ),
+        );
+      },
+    );
   }
 
   @override
   void initState() {
     super.initState();
+    SharedPreferences.getInstance().then((preferences) {
+      _preferences = preferences;
+      loadFavorites();
+    });
     fetchQuote();
   }
 
@@ -130,13 +187,13 @@ class _QuoteScreenState extends State<QuoteScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.teal,
-        title: Row(
+        title: const Row(
           children: [
-            const Text(
-              'Quote App',
+            Text(
+              'Quotify',
               style: TextStyle(fontFamily: 'Poppins'),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
           ],
         ),
         actions: [
@@ -257,164 +314,91 @@ class _QuoteScreenState extends State<QuoteScreen> {
                               '"$_quote"',
                               style: const TextStyle(
                                 fontFamily: 'Poppins',
-                                fontSize: 24,
+                                fontSize: 25,
                                 fontWeight: FontWeight.bold,
                               ),
-                              textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 10),
                             Text(
-                              '- $_author -',
-                              style: TextStyle(
+                              '- $_author',
+                              style: const TextStyle(
                                 fontFamily: 'Poppins',
-                                fontSize: 17,
-                                color: Colors.grey.shade700,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              onPressed: () => copyToClipboard(context),
+                              icon: const Icon(Icons.copy),
+                            ),
+                            IconButton(
+                              onPressed: addToFavorites,
+                              icon: Icon(
+                                _favorites.contains('$_quote - $_author')
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                              ),
+                            ),
+                            IconButton(
+                                onPressed: fetchQuote,
+                                icon: const Icon(Icons.arrow_forward))
                           ],
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      onPressed: fetchQuote,
-                      icon: const Icon(Icons.arrow_forward),
-                      color: Colors.teal,
-                      iconSize: 28,
-                    ),
-                    const SizedBox(width: 16),
-                    IconButton(
-                      onPressed: () => copyToClipboard(context),
-                      icon: const Icon(Icons.copy),
-                      color: Colors.teal,
-                      iconSize: 28,
-                    ),
-                    const SizedBox(width: 16),
-                    IconButton(
-                      onPressed: addToFavorites,
-                      icon: Icon(
-                        Icons.favorite_outline,
-                        color: _favorites.contains('$_quote - $_author')
-                            ? Colors.red
-                            : Colors.teal,
-                      ),
-                      color: Colors.teal,
-                      iconSize: 28,
-                    ),
-                  ],
-                ),
               ],
             ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.format_quote),
-            label: 'Quote',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: 'Favorites',
-          ),
-        ],
-        currentIndex: 0,
-        selectedItemColor: Colors.teal,
-        onTap: _onBottomNavigationItemTap,
-      ),
-    );
-  }
-
-  void _onBottomNavigationItemTap(int index) {
-    if (index == 1) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (BuildContext context) => FavoriteQuotesScreen(
-            favorites: _favorites,
-            removeFromFavorites: removeFromFavorites,
-          ),
-        ),
-      );
-    }
-  }
-}
-
-class FavoriteQuotesScreen extends StatefulWidget {
-  final List<String> favorites;
-  final Function(String) removeFromFavorites;
-
-  const FavoriteQuotesScreen({
-    Key? key,
-    required this.favorites,
-    required this.removeFromFavorites,
-  }) : super(key: key);
-
-  @override
-  _FavoriteQuotesScreenState createState() => _FavoriteQuotesScreenState();
-}
-
-class _FavoriteQuotesScreenState extends State<FavoriteQuotesScreen> {
-  late List<String> _favorites;
-
-  @override
-  void initState() {
-    super.initState();
-    _favorites = List.from(widget.favorites);
-  }
-
-  void _removeFromFavorites(int index) {
-    final quote = _favorites[index];
-    setState(() {
-      _favorites.removeAt(index);
-    });
-    widget.removeFromFavorites(quote);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: Colors.teal,
-        title: const Text(
-          'Favorite Quotes',
-          style: TextStyle(fontFamily: 'Poppins'),
-        ),
-      ),
-      body: _favorites.isEmpty
-          ? const Center(
-              child: Text(
-                'No favorite quotes yet.',
-                style: TextStyle(fontSize: 18),
-              ),
-            )
-          : ListView.builder(
-              itemCount: _favorites.length,
-              itemBuilder: (BuildContext context, int index) {
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ListTile(
-                    title: Text(
-                      _favorites[index],
-                      style:
-                          const TextStyle(fontFamily: 'Poppins', fontSize: 18),
-                    ),
-                    trailing: IconButton(
-                      onPressed: () => _removeFromFavorites(index),
-                      icon: const Icon(
-                        Icons.delete,
-                        color: Colors.teal,
-                        size: 30,
-                      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: fetchQuote,
+      //   backgroundColor: Colors.teal,
+      //   child: const Icon(Icons.arrow_forward),
+      // ),
+      drawer: Drawer(
+        child: Column(
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.teal),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Favorites',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
-                );
-              },
+                  SizedBox(height: 8),
+                  Text(
+                    'Swipe to remove',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
             ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: buildFavoritesList(),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
