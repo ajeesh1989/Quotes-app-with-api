@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter_share/flutter_share.dart';
 
+import 'about.dart';
+
 void main() {
   runApp(const MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -150,8 +152,8 @@ class _QuoteScreenState extends State<QuoteScreen> {
   Widget buildFavoritesList() {
     if (_favorites.isEmpty) {
       return const ListTile(
-        title: Text('No favorite quotes'),
-        subtitle: Text('Add quotes to your favorites'),
+        title: Center(child: Text('No favorite quotes')),
+        // subtitle: Text('Add quotes to your favorites'),
       );
     }
 
@@ -196,16 +198,20 @@ class _QuoteScreenState extends State<QuoteScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final String quoteType = _selectedType.isNotEmpty
+        ? 'Showing $_selectedType Quotes'
+        : 'Showing Random Quotes';
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.teal,
-        title: const Row(
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Quotify',
               style: TextStyle(fontFamily: 'Poppins'),
             ),
-            SizedBox(width: 8),
           ],
         ),
         actions: [
@@ -214,6 +220,70 @@ class _QuoteScreenState extends State<QuoteScreen> {
             icon: const Icon(Icons.format_quote),
           ),
         ],
+      ),
+      drawer: SizedBox(
+        width: 180,
+        child: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              const DrawerHeader(
+                decoration: BoxDecoration(color: Colors.teal),
+                child: Center(
+                  child: Text(
+                    'Quotify',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 30,
+                        fontWeight: FontWeight.w300),
+                  ),
+                ),
+              ),
+              ListTile(
+                title: const Text('About'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (BuildContext context) => const AboutApp()),
+                  );
+                },
+              ),
+              ListTile(
+                title: const Text('Back to app'),
+                onTap: () {
+                  Navigator.pop(context);
+                },
+              ),
+              // ignore: prefer_const_constructors
+              SizedBox(
+                height: 320,
+              ),
+              Center(
+                child: RichText(
+                  text: const TextSpan(
+                    text: 'Developer ',
+                    style: TextStyle(
+                      color: Colors.black87,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: 'aj_labs',
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
       body: _isLoading
           ? Shimmer.fromColors(
@@ -291,7 +361,24 @@ class _QuoteScreenState extends State<QuoteScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Card(
-                    color: const Color.fromARGB(255, 214, 246, 243),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    color: Color.fromARGB(255, 232, 243, 242),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        quoteType,
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ),
+                  // const SizedBox(
+                  //   height: 5,
+                  // ),
+                  Card(
+                    color: Color.fromARGB(255, 215, 239, 237),
                     elevation: 4,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -339,11 +426,14 @@ class _QuoteScreenState extends State<QuoteScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Favorite Quotes',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Text(
+                      'Favorite Quotes',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -351,10 +441,6 @@ class _QuoteScreenState extends State<QuoteScreen> {
                 ],
               ),
             ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: fetchQuote,
-      //   child: const Icon(Icons.arrow_forward),
-      // ),
     );
   }
 }
