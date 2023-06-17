@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:shimmer/shimmer.dart';
+import 'package:flutter_share/flutter_share.dart';
 
 void main() {
   runApp(const MaterialApp(
@@ -71,6 +72,15 @@ class _QuoteScreenState extends State<QuoteScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Quote copied to clipboard')),
+    );
+  }
+
+  Future<void> shareQuote() async {
+    final quote = '$_quote - $_author';
+    await FlutterShare.share(
+      title: 'Share Quote',
+      text: quote,
+      chooserTitle: 'Share via',
     );
   }
 
@@ -155,7 +165,7 @@ class _QuoteScreenState extends State<QuoteScreen> {
           direction: DismissDirection.endToStart,
           onDismissed: (direction) => removeFromFavorites(quote),
           background: Container(
-            color: Colors.red,
+            color: Colors.teal,
             alignment: Alignment.centerRight,
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: const Icon(
@@ -273,132 +283,75 @@ class _QuoteScreenState extends State<QuoteScreen> {
                 ],
               ),
             )
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                if (_selectedType.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 5,
-                      horizontal: 15,
+          : Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.teal.shade100,
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Text(
-                      _selectedType.toUpperCase(),
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w500,
-                        fontSize: 13,
-                        color: Colors.black87,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          Text(
+                            _quote,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            _author,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              IconButton(
+                                onPressed: () => addToFavorites(),
+                                icon: const Icon(Icons.favorite_border),
+                              ),
+                              IconButton(
+                                onPressed: () => copyToClipboard(context),
+                                icon: const Icon(Icons.content_copy),
+                              ),
+                              IconButton(
+                                onPressed: fetchQuote,
+                                icon: const Icon(Icons.arrow_forward),
+                              ),
+                              IconButton(
+                                onPressed: () => shareQuote(),
+                                icon: const Icon(Icons.share),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                Card(
-                  color: const Color.fromARGB(255, 225, 242, 241),
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  margin: const EdgeInsets.all(16),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        Column(
-                          children: [
-                            Text(
-                              '"$_quote"',
-                              style: const TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 25,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              '- $_author',
-                              style: const TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            IconButton(
-                              onPressed: () => copyToClipboard(context),
-                              icon: const Icon(Icons.copy),
-                            ),
-                            IconButton(
-                              onPressed: addToFavorites,
-                              icon: Icon(
-                                _favorites.contains('$_quote - $_author')
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                              ),
-                            ),
-                            IconButton(
-                                onPressed: fetchQuote,
-                                icon: const Icon(Icons.arrow_forward))
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: fetchQuote,
-      //   backgroundColor: Colors.teal,
-      //   child: const Icon(Icons.arrow_forward),
-      // ),
-      drawer: Drawer(
-        child: Column(
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.teal),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Favorites',
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Favorite Quotes',
                     style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 24,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Swipe to remove',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 14,
-                      color: Colors.white,
-                    ),
-                  ),
+                  const SizedBox(height: 8),
+                  Expanded(child: buildFavoritesList()),
                 ],
               ),
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: buildFavoritesList(),
-              ),
-            ),
-          ],
-        ),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: fetchQuote,
+      //   child: const Icon(Icons.arrow_forward),
+      // ),
     );
   }
 }

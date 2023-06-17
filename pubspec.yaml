@@ -39,6 +39,8 @@ dependencies:
   http: ^1.0.0
   shimmer: ^3.0.0
   shared_preferences: ^2.1.2
+  url_launcher: ^6.1.11
+  flutter_share: ^2.0.0
 
 dev_dependencies:
   flutter_test:
