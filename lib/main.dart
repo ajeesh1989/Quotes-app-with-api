@@ -155,30 +155,32 @@ class _QuoteScreenState extends State<QuoteScreen> {
       );
     }
 
-    return ListView.separated(
-      itemCount: _favorites.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
-      itemBuilder: (BuildContext context, int index) {
-        final quote = _favorites[index];
-        return Dismissible(
-          key: Key(quote),
-          direction: DismissDirection.endToStart,
-          onDismissed: (direction) => removeFromFavorites(quote),
-          background: Container(
-            color: Colors.teal,
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: const Icon(
-              Icons.delete,
-              color: Colors.white,
+    return Card(
+      child: ListView.separated(
+        itemCount: _favorites.length,
+        separatorBuilder: (context, index) => const SizedBox(height: 8),
+        itemBuilder: (BuildContext context, int index) {
+          final quote = _favorites[index];
+          return Dismissible(
+            key: Key(quote),
+            direction: DismissDirection.endToStart,
+            onDismissed: (direction) => removeFromFavorites(quote),
+            background: Container(
+              color: Colors.teal,
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: const Icon(
+                Icons.delete,
+                color: Colors.white,
+              ),
             ),
-          ),
-          child: ListTile(
-            title: Text(quote),
-            onTap: () => copyToClipboard(context),
-          ),
-        );
-      },
+            child: ListTile(
+              title: Text(quote),
+              onTap: () => copyToClipboard(context),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -216,7 +218,7 @@ class _QuoteScreenState extends State<QuoteScreen> {
       body: _isLoading
           ? Shimmer.fromColors(
               baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
+              highlightColor: Colors.teal[100]!,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -289,6 +291,7 @@ class _QuoteScreenState extends State<QuoteScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Card(
+                    color: const Color.fromARGB(255, 214, 246, 243),
                     elevation: 4,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -300,7 +303,7 @@ class _QuoteScreenState extends State<QuoteScreen> {
                           Text(
                             _quote,
                             style: const TextStyle(
-                              fontSize: 18,
+                              fontSize: 23,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
