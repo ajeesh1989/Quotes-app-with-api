@@ -91,7 +91,7 @@ class _QuoteScreenState extends State<QuoteScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Select Quote Type'),
+          title: const Text('Select your category'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -101,7 +101,6 @@ class _QuoteScreenState extends State<QuoteScreen> {
               _buildTypeListTile('Success', 'success'),
               _buildTypeListTile('Wisdom', 'wisdom'),
               _buildTypeListTile('Happiness', 'happiness'),
-              _buildTypeListTile('Courage', 'courage'),
             ],
           ),
         );
@@ -364,7 +363,7 @@ class _QuoteScreenState extends State<QuoteScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    color: Color.fromARGB(255, 232, 243, 242),
+                    color: const Color.fromARGB(255, 232, 243, 242),
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
@@ -378,7 +377,7 @@ class _QuoteScreenState extends State<QuoteScreen> {
                   //   height: 5,
                   // ),
                   Card(
-                    color: Color.fromARGB(255, 215, 239, 237),
+                    color: const Color.fromARGB(255, 215, 239, 237),
                     elevation: 4,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -388,7 +387,7 @@ class _QuoteScreenState extends State<QuoteScreen> {
                       child: Column(
                         children: [
                           Text(
-                            _quote,
+                            '"$_quote"',
                             style: const TextStyle(
                               fontSize: 23,
                               fontWeight: FontWeight.bold,
@@ -396,7 +395,7 @@ class _QuoteScreenState extends State<QuoteScreen> {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            _author,
+                            "- $_author -",
                             style: const TextStyle(fontSize: 14),
                           ),
                           const SizedBox(height: 16),
@@ -405,7 +404,15 @@ class _QuoteScreenState extends State<QuoteScreen> {
                             children: [
                               IconButton(
                                 onPressed: () => addToFavorites(),
-                                icon: const Icon(Icons.favorite_border),
+                                icon: Icon(
+                                  _favorites.contains('$_quote - $_author')
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color:
+                                      _favorites.contains('$_quote - $_author')
+                                          ? Colors.teal
+                                          : null,
+                                ),
                               ),
                               IconButton(
                                 onPressed: () => copyToClipboard(context),

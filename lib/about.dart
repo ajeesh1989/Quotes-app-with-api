@@ -19,7 +19,7 @@ class AboutApp extends StatelessWidget {
               child: Text(
                 textAlign: TextAlign.justify,
                 "Quotify is a quote app that allows users to explore and engage with a vast collection of inspiring quotes. With Quotify, users can discover meaningful quotes, copy them for personal use, add them to their favorites, and share them on social media platforms. The app offers a user-friendly interface and a seamless experience for quote enthusiasts.",
-                style: TextStyle(fontSize: 16),
+                style: TextStyle(fontSize: 15),
               ),
             ),
             Padding(
